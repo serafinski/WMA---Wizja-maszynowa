@@ -1,0 +1,1 @@
+# WMA-Wizja-maszynowa
