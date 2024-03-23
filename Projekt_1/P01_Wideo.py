@@ -50,11 +50,12 @@ while True:
         # Najwiekszy kontur na podsawie pola powierzchni
         largest_contour = max(contours, key=cv2.contourArea)
         # Zakladamy, ze najwiekszy kontur to to, co chcemy sledzic
-        M = cv2.moments(largest_contour)
+        m = cv2.moments(largest_contour)
+        print(m)
         # Sprawdzamy, czy pole powierzchni nie jest rowne 0
-        if M['m00'] != 0:
-            cx = int(M['m10'] / M['m00'])
-            cy = int(M['m01'] / M['m00'])
+        if m['m00'] != 0:
+            cx = int(m['m10'] / m['m00'])
+            cy = int(m['m01'] / m['m00'])
 
             # Rysowanie markera
             cv2.drawMarker(frame_rgb, (int(cx), int(cy)), color=(0, 255, 0), markerType=cv2.MARKER_CROSS, thickness=2)
