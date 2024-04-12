@@ -69,13 +69,34 @@ def connect_mask():
     cv2.imshow('obrazek', b_mask)
 
 
-def blur_circle():
-    ksize = cv2.getTrackbarPos('ksize', 'obrazek')
+def gaus_blur_circle():
+    ksize = cv2.getTrackbarPos('wiecej', 'obrazek')
+
+    c_img = image.copy()
+
+    gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
+    bimg = cv2.GaussianBlur(gimg, (ksize, ksize), 2)
+
+    cv2.imshow('obrazek', bimg)
+
+
+def simple_blur_circle():
+    ksize = cv2.getTrackbarPos('wiecej', 'obrazek')
 
     c_img = image.copy()
 
     gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
     bimg = cv2.blur(gimg, (ksize, ksize))
+
+    cv2.imshow('obrazek', bimg)
+
+
+def median_blur_circle():
+    ksize = cv2.getTrackbarPos('wiecej', 'obrazek')
+    c_img = image.copy()
+
+    gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
+    bimg = cv2.medianBlur(gimg, (int(ksize)))
 
     cv2.imshow('obrazek', bimg)
 
@@ -125,7 +146,13 @@ def zad1_2():
     c_img = image.copy()
 
     gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
-    bimg = cv2.blur(gimg, (3, 3))
+
+    # M 1, 2, 3, 4, 7
+    # G 0, 1, 2, 3, 4, 6, 7
+    # S 0, 1, 2, 4, 7
+    bimg = cv2.GaussianBlur(gimg, (3, 3), 2)
+    #bimg = cv2.medianBlur(gimg, 3)
+    #bimg = cv2.blur(gimg, (3, 3))
 
     circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=101, param2=48, minRadius=20,
                                maxRadius=40)
@@ -217,7 +244,7 @@ def zad3_4():
     # Okręgi - analiza i zliczanie
     c_img = image.copy()
     gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
-    bimg = cv2.blur(gimg, (3, 3))
+    bimg = cv2.GaussianBlur(gimg, (3, 3), 2)
     circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=101, param2=48, minRadius=20, maxRadius=40)
 
     suma_taca = 0
@@ -300,9 +327,15 @@ def main():
         elif key == ord('e'):
             find_circle()
             fun = find_circle
-        elif key == ord('r'):
-            blur_circle()
-            fun = blur_circle
+        elif key == ord('z'):
+            simple_blur_circle()
+            fun = simple_blur_circle()
+        elif key == ord('x'):
+            gaus_blur_circle()
+            fun = gaus_blur_circle
+        elif key == ord('c'):
+            median_blur_circle()
+            fun = median_blur_circle
         elif key == ord('t'):
             rectangle()
             fun = rectangle
