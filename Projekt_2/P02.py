@@ -1,5 +1,4 @@
 import cv2
-from cv2 import bitwise_or
 import numpy as np
 from screeninfo import get_monitors
 import os
@@ -32,43 +31,7 @@ def norm_size(img):
     return img
 
 
-def marker():
-    low_color = cv2.getTrackbarPos('low', 'obrazek')
-    high_color = cv2.getTrackbarPos('high', 'obrazek')
-
-    hsv_frame = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    lower = np.array([low_color, 100, 100])
-    upper = np.array([high_color, 255, 255])
-
-    mask = cv2.inRange(hsv_frame, lower, upper)
-    contours, hierarchy = cv2.findContours(mask, 1, 2)
-    M = cv2.moments(contours[0])
-    cx = int(M['m10'] / M['m00'])
-    cy = int(M['m01'] / M['m00'])
-    image_marker = image.copy()
-    cv2.drawMarker(image_marker, (int(cx), int(cy)), color=(
-        0, 255, 0), markerType=cv2.MARKER_CROSS, thickness=2)
-    cv2.imshow('obrazek', image_marker)
-
-
-def connect_mask():
-    low_color = cv2.getTrackbarPos('low', 'obrazek')
-    high_color = cv2.getTrackbarPos('high', 'obrazek')
-    ksize = cv2.getTrackbarPos('ksize', 'obrazek')
-
-    # Convert the HSV colorspace
-    hsv_frame = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    # Threshold the HSV image to get only blue color
-    lower = np.array([low_color, 100, 100])
-    upper = np.array([high_color, 255, 255])
-    mask = cv2.inRange(hsv_frame, lower, upper)
-    lower = np.array([0, 100, 100])
-    upper = np.array([ksize, 255, 255])
-    mask2 = cv2.inRange(hsv_frame, lower, upper)
-    b_mask = bitwise_or(mask, mask2)
-    cv2.imshow('obrazek', b_mask)
-
-
+# Debug Blur
 def gaus_blur_circle():
     ksize = cv2.getTrackbarPos('wiecej', 'obrazek')
 
@@ -80,58 +43,37 @@ def gaus_blur_circle():
     cv2.imshow('obrazek', bimg)
 
 
-def simple_blur_circle():
-    ksize = cv2.getTrackbarPos('wiecej', 'obrazek')
-
-    c_img = image.copy()
-
-    gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
-    bimg = cv2.blur(gimg, (ksize, ksize))
-
-    cv2.imshow('obrazek', bimg)
-
-
-def median_blur_circle():
-    ksize = cv2.getTrackbarPos('wiecej', 'obrazek')
-    c_img = image.copy()
-
-    gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
-    bimg = cv2.medianBlur(gimg, (int(ksize)))
-
-    cv2.imshow('obrazek', bimg)
-
-
+# Debug kola
 def find_circle():
-    #gradient by linia
+    # Siła gradientu, by uznać za linie
     low_color = cv2.getTrackbarPos('low', 'obrazek')
-    #sila falszywe dektekcje
+    # Siła akumulatora — eliminacja fałszywych detekcji
     high_color = cv2.getTrackbarPos('nowe', 'obrazek')
-    #min dystans miedzy kolami
+    # Min dystans między środkami kół — unikniecie kilku kół w tym samym miejscu
     ksize = cv2.getTrackbarPos('wiecej', 'obrazek')
 
     c_img = image.copy()
 
     gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
 
+    # ksize = 3
     bimg = cv2.GaussianBlur(gimg, (3, 3), 2)
 
-    # 0, 1, 2, 4, 7
-    # 3, 6
-    # 5
-
-    # 124 - 1, 2, 3, 4, 5, 6, 7
-    # low_color = param1 162 - 28 / dla 30/40 - 101
-    # high_color = param2 60 - 48 / dla 30/40 - 48
-    # ksize = minDist 13-63 - 53 / dla 30/40 56
-    # ksize = 3
+    # low_color = param1 - 124
+    # high_color = param2 - 48
+    # ksize = minDist - 56
     circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, ksize, param1=low_color, param2=high_color, minRadius=20,
                                maxRadius=40)
     circles = np.uint16(np.around(circles))
+
     for i in circles[0, :]:
+        # Zl
         if i[2] > 32:
             cv2.circle(c_img, (i[0], i[1]), i[2], (0, 255, 0), 2)
+        # Gr
         else:
             cv2.circle(c_img, (i[0], i[1]), i[2], (255, 0, 0), 2)
+
         font = cv2.FONT_HERSHEY_SIMPLEX
         text = f"{i[2]}"
         cv2.putText(c_img, text, (i[0], i[1]), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
@@ -139,64 +81,16 @@ def find_circle():
     cv2.imshow('obrazek', c_img)
 
 
-def zad1_2():
-    ilosc_zlotowek = 0
-
-    ilosc_groszy = 0
-
-    c_img = image.copy()
-
-    gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
-
-    # M 1, 2, 3, 4, 7
-    # G 0, 1, 2, 3, 4, 6, 7
-    # S 0, 1, 2, 4, 7
-    bimg = cv2.GaussianBlur(gimg, (3, 3), 2)
-    #bimg = cv2.medianBlur(gimg, 3)
-    #bimg = cv2.blur(gimg, (3, 3))
-
-    circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=124, param2=48, minRadius=20,
-                               maxRadius=40)
-
-    if circles is not None:
-        circles = np.uint16(np.around(circles))
-        print()
-        for i in circles[0, :]:
-            # Rysowanie okręgu
-            if i[2] > 32:
-                ilosc_zlotowek += 1
-                cv2.circle(c_img, (i[0], i[1]), i[2], (0, 0, 255), 2)
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                zlotowka = "Z"
-                cv2.putText(c_img, zlotowka, (i[0], i[1]), font, 0.5, (0, 0, 0), 2, cv2.LINE_AA)
-            else:
-                ilosc_groszy += 1
-                cv2.circle(c_img, (i[0], i[1]), i[2], (0, 255, 0), 2)
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                zlotowka = "G"
-                cv2.putText(c_img, zlotowka, (i[0], i[1]), font, 0.5, (0, 0, 0), 2, cv2.LINE_AA)
-            # Rysowanie środka okręgu
-            #cv2.circle(c_img, (i[0], i[1]), 2, (0, 0, 255), 3)
-
-            # Obliczanie i drukowanie powierzchni okręgu
-            area = np.pi * (i[2] ** 2)
-            print(f"Okrąg o środku ({i[0]}, {i[1]}) ma powierzchnię: {area:.2f} i promien {i[2]:.2f}")
-
-    cv2.imshow('obrazek', c_img)
-    print()
-    print(f"Ilosc 5 zlotowek: {ilosc_zlotowek}")
-    print(f"Ilosc 5 groszowek: {ilosc_groszy}")
-
-
-# 95
+# Debug prostokąt - 95
 def rectangle():
+    low_color = cv2.getTrackbarPos('wiecej', 'obrazek')
+
     global image
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray, 95, 0, apertureSize=3)
+    edges = cv2.Canny(gray, low_color, 0, apertureSize=3)
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 90, minLineLength=100, maxLineGap=5)
     image_l = image.copy()
 
-    # Inicjalizacja wartości do znalezienia najmniejszego/największego x i y
     min_x, min_y = float('inf'), float('inf')
     max_x, max_y = float('-inf'), float('-inf')
 
@@ -220,20 +114,101 @@ def rectangle():
     cv2.imshow("obrazek", image_l)
 
 
+def rotate():
+    global image
+    rot = cv2.getTrackbarPos('rot', 'obrazek')
+    height, width = image.shape[:2]
+    center_x, center_y = (width / 2, height / 2)
+    M = cv2.getRotationMatrix2D((center_x, center_y), rot, 1.0)
+    rotated_image = cv2.warpAffine(image, M, (width, height))
+    cv2.imshow('obrazek', rotated_image)
+
+
+def zad1_2():
+    ilosc_zlotowek = 0
+
+    ilosc_groszy = 0
+
+    c_img = image.copy()
+
+    gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
+    median_val = np.median(gimg)
+    # print(f"Przed: {median_val}")
+
+    # Korekcja kontrastu na tray1.jpg
+    if median_val < 52:
+        # Kontrola kontrastu
+        alpha = 1.1
+        gimg = cv2.convertScaleAbs(gimg, alpha=alpha)
+        # median_val = np.median(gimg)
+        # print(f"Po: {median_val}")
+
+    # 0 B56 R51
+    # 1 B56 R52
+    # 2 B58 R54
+    # 3 B58 R53
+    # 4 B59 R55
+    # 5 B60 R55
+    # 6 B68 R64
+    # 7 B57 R53
+
+    bimg = cv2.GaussianBlur(gimg, (3, 3), 2)
+
+    circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=124, param2=48, minRadius=20,
+                               maxRadius=40)
+
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        print()
+        for i in circles[0, :]:
+            # Rysowanie okręgu
+            if i[2] > 32:
+                ilosc_zlotowek += 1
+
+                cv2.circle(c_img, (i[0], i[1]), i[2], (0, 0, 255), 2)
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                zlotowka = "Z"
+                cv2.putText(c_img, zlotowka, (i[0], i[1]), font, 0.5, (0, 0, 0), 2, cv2.LINE_AA)
+            else:
+                ilosc_groszy += 1
+
+                cv2.circle(c_img, (i[0], i[1]), i[2], (0, 255, 0), 2)
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                zlotowka = "G"
+                cv2.putText(c_img, zlotowka, (i[0], i[1]), font, 0.5, (0, 0, 0), 2, cv2.LINE_AA)
+
+            # Rysowanie środka okręgu
+            # cv2.circle(c_img, (i[0], i[1]), 2, (0, 0, 255), 3)
+
+            # Obliczanie i drukowanie powierzchni okręgu
+            area = np.pi * (i[2] ** 2)
+            print(f"Okrąg o środku ({i[0]}, {i[1]}) ma powierzchnię: {area:.2f} i promień {i[2]:.2f}")
+
+    cv2.imshow('obrazek', c_img)
+    print()
+    print(f"Ilość 5 złotowek: {ilosc_zlotowek}")
+    print(f"Ilość 5 groszówek: {ilosc_groszy}")
+
+
 def zad3_4():
     print()
-    global image
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Prostokąt - analiza linii
+    global image
+
+    # Prostokąt — analiza linii
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(gray, 95, 0, apertureSize=3)
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 90, minLineLength=100, maxLineGap=5)
+
+    # Inicjalizacja wartości do znalezienia najmniejszego/największego x i y
     min_x, min_y = float('inf'), float('inf')
     max_x, max_y = float('-inf'), float('-inf')
 
     if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line[0]
+
+            # Aktualizacja min/max x i y
             min_x, min_y = min(min_x, x1, x2), min(min_y, y1, y2)
             max_x, max_y = max(max_x, x1, x2), max(max_y, y1, y2)
 
@@ -242,29 +217,47 @@ def zad3_4():
     pole_prostokata = szerokosc * wysokosc
     print(f"Pole tacy: {pole_prostokata:.2f}")
 
-    # Okręgi - analiza i zliczanie
+    # Okręgi — analiza i zliczanie
     c_img = image.copy()
+
     gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
+    median_val = np.median(gimg)
+
+    # Korekcja kontrastu na tray1.jpg
+    if median_val < 52:
+        # Kontrola kontrastu
+        alpha = 1.1
+        gimg = cv2.convertScaleAbs(gimg, alpha=alpha)
+    # gimg = cv2.cvtColor(c_img, cv2.COLOR_BGR2GRAY)
+
     bimg = cv2.GaussianBlur(gimg, (3, 3), 2)
+
     circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=124, param2=48, minRadius=20, maxRadius=40)
 
     suma_taca = 0
 
     if circles is not None:
         circles = np.uint16(np.around(circles))
+
         for i in circles[0, :]:
             area = np.pi * (i[2] ** 2)
             ratio = pole_prostokata / area
-            if i[2] > 32:  # Złotówki
+
+            # Złotówki
+            if i[2] > 32:
                 cv2.circle(c_img, (i[0], i[1]), i[2], (0, 0, 255), 2)
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 zlotowka = f"({i[0]}, {i[1]})Z"
                 cv2.putText(c_img, zlotowka, (i[0], i[1]), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
+
                 print(f"Złotówka ({i[0]}, {i[1]}) ({i[2]} px promień): {area:.2f}")
                 print(f"Złotówka ({i[0]}, {i[1]}) jest mniejsza {ratio:.3f} razy od tacy")
+
                 if min_x <= i[0] <= max_x and min_y <= i[1] <= max_y:
                     suma_taca += 5
-            else:  # Groszówki
+
+            # Groszówki
+            else:
                 cv2.circle(c_img, (i[0], i[1]), i[2], (0, 255, 0), 2)
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 zlotowka = "G"
@@ -278,16 +271,6 @@ def zad3_4():
     print()
     print(f"Suma taca: {suma_taca:.2f} zl")
     cv2.imshow("obrazek", c_img)
-
-
-def rotate():
-    global image
-    rot = cv2.getTrackbarPos('rot', 'obrazek')
-    height, width = image.shape[:2]
-    center_x, center_y = (width / 2, height / 2)
-    M = cv2.getRotationMatrix2D((center_x, center_y), rot, 1.0)
-    rotated_image = cv2.warpAffine(image, M, (width, height))
-    cv2.imshow('obrazek', rotated_image)
 
 
 def change_h(x):
@@ -314,7 +297,7 @@ def main():
     while True:
         key = cv2.waitKey()
         # -----------wybor obrazka----------------
-        if key >= ord('0') and key <= ord('9'):
+        if ord('0') <= key <= ord('9'):
             image = upload(key)
 
         # Zadania
@@ -324,32 +307,22 @@ def main():
         elif key == ord('w'):
             zad3_4()
             fun = zad3_4
+
         # Pomocnicze
-        elif key == ord('e'):
+        elif key == ord('z'):
             find_circle()
             fun = find_circle
-        elif key == ord('z'):
-            simple_blur_circle()
-            fun = simple_blur_circle()
         elif key == ord('x'):
             gaus_blur_circle()
             fun = gaus_blur_circle
         elif key == ord('c'):
-            median_blur_circle()
-            fun = median_blur_circle
-        elif key == ord('t'):
             rectangle()
             fun = rectangle
-        elif key == ord('a'):
-            marker()
-            fun = marker
-        elif key == ord('s'):
-            connect_mask()
-            fun = connect_mask
-        elif key == ord('d'):
+        elif key == ord('v'):
             rotate()
             fun = rotate
-        # Wyjscie
+
+        # Wyjście
         elif key == 27:
             cv2.destroyAllWindows()
             break
