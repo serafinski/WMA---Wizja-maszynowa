@@ -113,12 +113,13 @@ def find_circle():
 
     gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
 
-    bimg = cv2.blur(gimg, (3, 3))
+    bimg = cv2.GaussianBlur(gimg, (3, 3), 2)
 
     # 0, 1, 2, 4, 7
     # 3, 6
     # 5
 
+    # 124 - 1, 2, 3, 4, 5, 6, 7
     # low_color = param1 162 - 28 / dla 30/40 - 101
     # high_color = param2 60 - 48 / dla 30/40 - 48
     # ksize = minDist 13-63 - 53 / dla 30/40 56
@@ -154,7 +155,7 @@ def zad1_2():
     #bimg = cv2.medianBlur(gimg, 3)
     #bimg = cv2.blur(gimg, (3, 3))
 
-    circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=101, param2=48, minRadius=20,
+    circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=124, param2=48, minRadius=20,
                                maxRadius=40)
 
     if circles is not None:
@@ -245,7 +246,7 @@ def zad3_4():
     c_img = image.copy()
     gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
     bimg = cv2.GaussianBlur(gimg, (3, 3), 2)
-    circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=101, param2=48, minRadius=20, maxRadius=40)
+    circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=124, param2=48, minRadius=20, maxRadius=40)
 
     suma_taca = 0
 
