@@ -180,9 +180,9 @@ def zad1_2():
             # Rysowanie środka okręgu
             # cv2.circle(c_img, (i[0], i[1]), 2, (0, 0, 255), 3)
 
-            # Obliczanie i drukowanie powierzchni okręgu
+            # Obliczanie i drukowanie powierzchni monety
             area = np.pi * (i[2] ** 2)
-            print(f"Okrąg o środku ({i[0]}, {i[1]}) ma powierzchnię: {area:.2f} i promień {i[2]:.2f}")
+            print(f"Moneta o środku ({i[0]}, {i[1]}) ma powierzchnię: {area:.2f} - promień: {i[2]:.2f}")
 
     cv2.imshow('obrazek', c_img)
     print()
@@ -217,7 +217,7 @@ def zad3_4():
     pole_prostokata = szerokosc * wysokosc
     print(f"Pole tacy: {pole_prostokata:.2f}")
 
-    # Okręgi — analiza i zliczanie
+    # Monety — analiza i zliczanie
     c_img = image.copy()
 
     gimg = cv2.cvtColor(c_img, cv2.COLOR_RGB2GRAY)
@@ -235,6 +235,7 @@ def zad3_4():
     circles = cv2.HoughCircles(bimg, cv2.HOUGH_GRADIENT, 1.4, 56, param1=124, param2=48, minRadius=20, maxRadius=40)
 
     suma_taca = 0
+    suma_poza = 0
 
     if circles is not None:
         circles = np.uint16(np.around(circles))
@@ -250,11 +251,13 @@ def zad3_4():
                 zlotowka = f"({i[0]}, {i[1]})Z"
                 cv2.putText(c_img, zlotowka, (i[0], i[1]), font, 0.5, (255, 255, 255), 2, cv2.LINE_AA)
 
-                print(f"Złotówka ({i[0]}, {i[1]}) ({i[2]} px promień): {area:.2f}")
-                print(f"Złotówka ({i[0]}, {i[1]}) jest mniejsza {ratio:.3f} razy od tacy")
+                print(f"Złotówka ({i[0]}, {i[1]}) ({i[2]:.2f} promień): {area:.2f}")
+                print(f"Złotówka ({i[0]}, {i[1]}) jest mniejsza {ratio:.3f} raza od tacy")
 
                 if min_x <= i[0] <= max_x and min_y <= i[1] <= max_y:
                     suma_taca += 5
+                else:
+                    suma_poza += 5
 
             # Groszówki
             else:
@@ -265,11 +268,15 @@ def zad3_4():
 
                 if min_x <= i[0] <= max_x and min_y <= i[1] <= max_y:
                     suma_taca += 0.05
+                else:
+                    suma_poza += 0.05
+
 
     # Rysowanie prostokąta na podstawie znalezionych współrzędnych
     cv2.rectangle(c_img, (min_x, min_y), (max_x, max_y), (255, 0, 0), 2)
     print()
     print(f"Suma taca: {suma_taca:.2f} zl")
+    print(f"Suma poza: {suma_poza:.2f} zl")
     cv2.imshow("obrazek", c_img)
 
 
