@@ -17,16 +17,16 @@ def resize(img, s):
     w = w + int(w * s)
     return cv2.resize(img, (w, h), interpolation=cv2.INTER_LINEAR)
 
-
+# SKALOWANIE - ROBIŁEM PROJEKT NA EKRANIE 2560 x 1440 - trzeba odpowiednio zeskalowac
 def norm_size(img):
-    screen = get_monitors()[0]
+    #screen = get_monitors()[0]
     h, w = img.shape[:2]
-    if h > screen.height - 400:
-        s = (1 - ((screen.height - 400) / h)) * (-1)
+    if h > 2560 - 400:
+        s = (1 - ((1440 - 400) / h)) * (-1)
         img = resize(img, s)
     h, w = img.shape[:2]
-    if w > screen.width:
-        s = (1 - (screen.width / w)) * (-1)
+    if w > 2560:
+        s = (1 - (2560 / w)) * (-1)
         img = resize(img, s)
     return img
 
