@@ -5,7 +5,7 @@ import os
 
 def upload(i):
     i = i - ord('0')
-    image = norm_size(cv2.imread('pliki/{}'.format(images[i])))
+    image = norm_size(cv2.imread('files/{}'.format(images[i])))
     cv2.imshow('obrazek', image)
     return image
 
@@ -30,6 +30,7 @@ def norm_size(img):
     return img
 
 
+# c
 def cut():
     global image, image2
     low_color = cv2.getTrackbarPos('low', 'obrazek') * 2
@@ -42,6 +43,7 @@ def cut():
     cv2.imshow('obrazek', image2)
 
 
+# v
 def sift1():
     global image
     gimg = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -53,21 +55,57 @@ def sift1():
     cv2.imshow('obrazek', keypointimage)
 
 
+# b
 def sift2():
-    global image, image2
-    gimg1 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+    global image
+    best_matches_count = 0
+    best_matched_img = None
     gimg2 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     siftobject = cv2.SIFT_create()
-    keypoints_1, descriptors_1 = siftobject.detectAndCompute(gimg1, None)
     keypoints_2, descriptors_2 = siftobject.detectAndCompute(gimg2, None)
-    bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
-    matches = bf.match(descriptors_1, descriptors_2)
-    matches = sorted(matches, key=lambda x: x.distance)
-    matched_img = cv2.drawMatches(
-        image2, keypoints_1, image, keypoints_2, matches, image, flags=2)
-    cv2.imshow('obrazek', matched_img)
 
+    reference_images = os.listdir('data/')
+    if not reference_images:
+        print("Brak obrazów w folderze 'data/'.")
+        return
 
+    target_height, target_width = image.shape[:2]  # Wysokość i szerokość obrazu, do którego porównujemy
+
+    for img_name in reference_images:
+        img_path = 'data/{}'.format(img_name)
+        image2 = cv2.imread(img_path)
+
+        if image2 is None:
+            print(f"Nie udało się załadować obrazu: {img_path}")
+            continue
+
+        # Skalowanie obu obrazów do tego samego rozmiaru
+        image2_resized = cv2.resize(image2, (target_width, target_height))
+        gimg1 = cv2.cvtColor(image2_resized, cv2.COLOR_BGR2GRAY)
+        keypoints_1, descriptors_1 = siftobject.detectAndCompute(gimg1, None)
+
+        if descriptors_1 is None or descriptors_2 is None:
+            print("Nie można obliczyć deskryptorów dla obrazu.")
+            continue
+
+        bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
+        matches = bf.match(descriptors_1, descriptors_2)
+        matches = sorted(matches, key=lambda x: x.distance)
+
+        print(f"Liczba dopasowań dla obrazu {img_name}: {len(matches)}")
+
+        if len(matches) > best_matches_count:
+            best_matches_count = len(matches)
+            matched_img = cv2.drawMatches(
+                image2_resized, keypoints_1, image, keypoints_2, matches, None, flags=2)
+            best_matched_img = matched_img
+
+    if best_matched_img is not None:
+        cv2.imshow('obrazek', best_matched_img)
+    else:
+        print("Nie znaleziono dopasowań.")
+
+# n
 def sift3():
     global image, image2
     k = cv2.getTrackbarPos('ksize', 'obrazek')
@@ -77,31 +115,90 @@ def sift3():
     gimg1 = cv2.medianBlur(gimg1, ksize=k)
     gimg2 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gimg2 = cv2.medianBlur(gimg2, ksize=k)
+
     siftobject = cv2.SIFT_create()
+
     keypoints_1, descriptors_1 = siftobject.detectAndCompute(gimg1, None)
     keypoints_2, descriptors_2 = siftobject.detectAndCompute(gimg2, None)
-    bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
-    matches = bf.match(descriptors_1, descriptors_2)
 
+    bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
+
+    matches = bf.match(descriptors_1, descriptors_2)
     matches = sorted(matches, key=lambda x: x.distance)
+
     matched_img = cv2.drawMatches(
         image2, keypoints_1, image, keypoints_2, matches, image, flags=2)
     cv2.imshow('obrazek', matched_img)
 
 
+# m
 def orb():
-    global image, image2
-    gimg1 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+    global image
+    best_matches_count = 0
+    best_matched_img = None
     gimg2 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     orb = cv2.ORB_create()
-    keypoints_1, descriptors_1 = orb.detectAndCompute(gimg1, None)
     keypoints_2, descriptors_2 = orb.detectAndCompute(gimg2, None)
-    bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
-    matches = bf.match(descriptors_1, descriptors_2)
-    matches = sorted(matches, key=lambda x: x.distance)
-    matched_img = cv2.drawMatches(
-        image2, keypoints_1, image, keypoints_2, matches, image, flags=2)
-    cv2.imshow('obrazek', matched_img)
+
+    reference_images = os.listdir('data/')
+    if not reference_images:
+        print("Brak obrazów w folderze 'data/'.")
+        return
+
+    target_height, target_width = image.shape[:2]  # Wysokość i szerokość obrazu, do którego porównujemy
+
+    for img_name in reference_images:
+        img_path = 'data/{}'.format(img_name)
+        image2 = cv2.imread(img_path)
+
+        if image2 is None:
+            print(f"Nie udało się załadować obrazu: {img_path}")
+            continue
+
+        # Skalowanie obu obrazów do tego samego rozmiaru
+        image2_resized = cv2.resize(image2, (target_width, target_height))
+        gimg1 = cv2.cvtColor(image2_resized, cv2.COLOR_BGR2GRAY)
+        keypoints_1, descriptors_1 = orb.detectAndCompute(gimg1, None)
+
+        if descriptors_1 is None or descriptors_2 is None:
+            print("Nie można obliczyć deskryptorów dla obrazu.")
+            continue
+
+        bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
+        matches = bf.match(descriptors_1, descriptors_2)
+        matches = sorted(matches, key=lambda x: x.distance)
+
+        print(f"Liczba dopasowań dla obrazu {img_name}: {len(matches)}")
+
+        if len(matches) > best_matches_count:
+            best_matches_count = len(matches)
+            matched_img = cv2.drawMatches(
+                image2_resized, keypoints_1, image, keypoints_2, matches, None, flags=2)
+            best_matched_img = matched_img
+
+    if best_matched_img is not None:
+        cv2.imshow('obrazek', best_matched_img)
+    else:
+        print("Nie znaleziono dopasowań.")
+
+# def orb():
+#     global image, image2
+#     gimg1 = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+#     gimg2 = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+#
+#     orb = cv2.ORB_create()
+#
+#     keypoints_1, descriptors_1 = orb.detectAndCompute(gimg1, None)
+#     keypoints_2, descriptors_2 = orb.detectAndCompute(gimg2, None)
+#
+#     bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
+#
+#     matches = bf.match(descriptors_1, descriptors_2)
+#     matches = sorted(matches, key=lambda x: x.distance)
+#
+#     matched_img = cv2.drawMatches(
+#         image2, keypoints_1, image, keypoints_2, matches, image, flags=2)
+#     cv2.imshow('obrazek', matched_img)
 
 
 def change_h(x):
@@ -110,7 +207,7 @@ def change_h(x):
         fun()
 
 
-images = os.listdir('pliki/')
+images = os.listdir('files/')
 image = None
 fun = None
 
@@ -118,7 +215,7 @@ fun = None
 def main():
     global image
     global fun
-    image = norm_size(cv2.imread('pliki/{}'.format(images[0])))
+    image = norm_size(cv2.imread('files/{}'.format(images[0])))
     nimg = image.copy()
     cv2.imshow('obrazek', image)
     cv2.createTrackbar('low', 'obrazek', 0, 255, change_h)
@@ -145,7 +242,6 @@ def main():
         elif key == ord('n'):
             sift3()
             fun = sift3
-
         elif key == ord('m'):
             orb()
             fun = orb
