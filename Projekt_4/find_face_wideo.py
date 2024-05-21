@@ -1,32 +1,33 @@
 import cv2
 import os
 
-fun = None
 img = None
 i = 0
 object_cascade = None
 
-# Haarcascade directory
+# Katalog Haarcascade
 haarcascade_dir = "C:/Users/tsera/anaconda3/envs/WMA/Library/etc/haarcascades"
 
-# Haarcascade file list
+# Lista plików Haarcascade
 list_haarcascade = ['haarcascade_frontalface_alt2.xml']
 
-# Parameters for face detection
+# Parametery do detekcji twarzy
+
+# scale factor
 f = 105
+# min neighbors
 n = 5
+# min size
 s = 200
 
-# Output directory for saving frames
-#output_dir = 'output_frames'
-#output_dir = 'output_frames_720'
-output_dir = 'output_yt'
+# Folder do zapisywania zdjec
+output_dir = 'output_frames_me3'
 
-# Ensure the output directory exists
+# Zapewnienie ze lokalizacja istnieje
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-
+# Pozostalosc z orginalnego kodu - ustawienie algorytmu wykrywania
 def set_object():
     global i, object_cascade, list_haarcascade
     object_cascade = cv2.CascadeClassifier(os.path.join(haarcascade_dir, list_haarcascade[i]))
@@ -37,39 +38,39 @@ def set_object():
 
 
 def main():
-    global fun, img, object_cascade, f, n, s
-
-    # Change video source to a file
-    # Wideo YT
-    # 1. https://www.youtube.com/watch?v=Xygk7UjKM2g
-    # 2. https://www.youtube.com/watch?v=3hvpiK4ttHM
-    # 3. https://www.youtube.com/watch?v=-CeLBsqU6qw
-
-
-    #video_path = 'D:/PJATK/Semestr_6/WMA---Wizja-maszynowa/Projekt_4/videos/WIN_20240515_21_27_46_Pro.mp4'
-    #video_path = "D:/PJATK/Semestr_6/WMA---Wizja-maszynowa/Projekt_4/videos/WIN_20240515_21_47_24_Pro.mp4"
-    video_path = "D:/PJATK/Semestr_6/WMA---Wizja-maszynowa/Projekt_4/videos/faces.mp4"
+    global img, object_cascade, f, n, s
+    video_path = 'D:/PJATK/Semestr_6/WMA---Wizja-maszynowa/Projekt_4/videos/me3.mp4'
+    # Inicjalizacja czytania klatek z wideo
     cap = cv2.VideoCapture(video_path)
 
+    # Inicjalizacja algorytmu wykrywania twarzy
     set_object()
 
+    # zmienne do printa
     frame_count = 0
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
+    # Czytanie nastepnych klatek
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
-        print(f"Processing frame: {frame_count + 1}/{total_frames}")
+        print(f"Przetwarzana klatka: {frame_count + 1}/{total_frames}")
 
+        # Konwersja klatki na skale szarosci
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Wykrywanie twarzy
         faces = object_cascade.detectMultiScale(gray, scaleFactor=f / 100, minNeighbors=n, minSize=(s, s))
 
+        # Zapisywanie klatki z twarza
         if len(faces) > 0:
+            # Pierwsza twarz na klatce
             x, y, w, h = faces[0]
+            # Wyciecie twarzy i rezize do 200x200
             img = frame[y:y + h, x:x + w]
             img = cv2.resize(img, (200, 200), interpolation=cv2.INTER_LINEAR)
+            # Zapisanie twarzy
             cv2.imwrite(os.path.join(output_dir, f'frame_{frame_count:04d}.jpg'), img)
 
         frame_count += 1
