@@ -8,3 +8,5 @@ Wizja Maszynowa (WMA) - 2023/2024
 <h2 align="center"> Prowadzący Ćwiczenia - Maciej Maciejewski </h2>
 <h3>Opis</h3>
 Zadania z WMA rozwiązane przeze mnie.
+
+Projekt 6 nie został zrobiony ponieważ nie potrzebowałem go by zaliczyć ćwiczeń.
